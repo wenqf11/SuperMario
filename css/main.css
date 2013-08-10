@@ -1,0 +1,407 @@
+body
+{
+	background-image:url(../images/background.gif);
+	margin:0;
+	overflow:hidden;
+}
+
+#left-curtain
+{
+	position: absolute;
+	width:430px;
+	height:520px;
+	z-index: 4;
+	float: left;
+	background-image:url(../images/background.gif);
+}
+#right-curtain
+{
+	position: absolute;
+	height:520px;
+	width:428px;
+	left:938px;
+	background-image:url(../images/background.gif);
+	z-index: 4;
+}
+#main
+{
+	width:510px;
+	height:520px;
+	float:left;
+}
+
+#backcolor
+{
+	position:absolute;
+	background-color: #0099CC;
+	top:43px;
+	left:428px;
+	width:510px;
+	height:452px;
+	z-index: 1;
+}
+
+#ground
+{
+	position: absolute;
+	background-image: url(../images/ground.gif);
+	width:4000px;
+	height:50px;
+	top:445px;
+	left:428px;
+	z-index: 2;
+}
+	
+#wall1
+{
+	position: absolute;
+	height:105px;
+	top:330px;
+	left:526px;
+	z-index: 3;
+}
+
+#wall2
+{
+	position: absolute;
+	height:105px;
+	top:280px;
+	left:726px;
+	z-index: 3;
+}
+#wall3
+{
+	position: absolute;
+	height:105px;
+	top:250px;
+	left:1220px;
+	z-index: 3;
+}
+#wall4
+{
+	position: absolute;
+	height:105px;
+	top:250px;
+	left:1620px;
+	z-index: 3;
+}
+#wall5
+{
+	position: absolute;
+	height:105px;
+	top:350px;
+	left:1920px;
+	z-index: 3;
+}
+#wall6
+{
+	position: absolute;
+	height:105px;
+	top:250px;
+	left:2100px;
+	z-index: 3;
+}
+#wall7
+{
+	position: absolute;
+	height:105px;
+	top:320px;
+	left:1520px;
+	z-index: 3;
+}
+#hill1
+{
+	position: absolute;
+	height:95px;
+	top:349px;
+	left:428px;
+	z-index: 2;
+}
+#hill2
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:628px;
+	z-index: 2;
+}
+#hill3
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:928px;
+	z-index: 2;
+}
+#hill4
+{
+	position: absolute;
+	height:95px;
+	top:382px;
+	left:1228px;
+	z-index: 2;
+}
+#hill5
+{
+	position: absolute;
+	height:95px;
+	top:349px;
+	left:1598px;
+	z-index: 2;
+}
+#hill6
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:1728px;
+	z-index: 2;
+}
+#hill7
+{
+	position: absolute;
+	height:95px;
+	top:382px;
+	left:2028px;
+	z-index: 2;
+}
+#hill8
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:2128px;
+	z-index: 2;
+}
+#hill9
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:2328px;
+	z-index: 2;
+}
+#hill10
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:2528px;
+	z-index: 2;
+}
+#hill11
+{
+	position: absolute;
+	height:95px;
+	top:349px;
+	left:2628px;
+	z-index: 2;
+}
+#hill12
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:2828px;
+	z-index: 2;
+}
+#hill13
+{
+	position: absolute;
+	height:95px;
+	top:382px;
+	left:3028px;
+	z-index: 2;
+}
+#hill14
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:3228px;
+	z-index: 2;
+}
+#hill15
+{
+	position: absolute;
+	height:95px;
+	top:349px;
+	left:3328px;
+	z-index: 2;
+}
+#hill16
+{
+	position: absolute;
+	height:95px;
+	top:413px;
+	left:3528px;
+	z-index: 2;
+}
+
+#cloud1
+{
+	position: absolute;
+	height:105px;
+	top:120px;
+	left:728px;
+	z-index: 2;
+}
+#cloud2
+{
+	position: absolute;
+	height:105px;
+	top:100px;
+	left:1228px;
+	z-index: 2;
+}
+#cloud3
+{
+	position: absolute;
+	height:105px;
+	top:90px;
+	left:928px;
+	z-index: 2;
+}
+#cloud4
+{
+	position: absolute;
+	height:105px;
+	top:90px;
+	left:1478px;
+	z-index: 2;
+}
+#cloud5
+{
+	position: absolute;
+	height:105px;
+	top:80px;
+	left:1728px;
+	z-index: 2;
+}
+#cloud6
+{
+	position: absolute;
+	height:105px;
+	top:70px;
+	left:2028px;
+	z-index: 2;
+}
+#cloud7
+{
+	position: absolute;
+	height:105px;
+	top:105px;
+	left:2228px;
+	z-index: 2;
+}
+#cloud8
+{
+	position: absolute;
+	height:105px;
+	top:110px;
+	left:2528px;
+	z-index: 2;
+}
+#cloud9
+{
+	position: absolute;
+	height:105px;
+	top:70px;
+	left:2828px;
+	z-index: 2;
+}
+#cloud10
+{
+	position: absolute;
+	height:105px;
+	top:102px;
+	left:3068px;
+	z-index: 2;
+}
+#cloud11
+{
+	position: absolute;
+	height:105px;
+	top:100px;
+	left:3328px;
+	z-index: 2;
+}
+#cloud12
+{
+	position: absolute;
+	height:105px;
+	top:90px;
+	left:3628px;
+	z-index: 2;
+}
+#sewer1
+{
+	position: absolute;
+	top:382px;
+	left:778px;
+	z-index: 3;
+}
+#sewer2
+{
+	position: absolute;
+	top:349px;
+	left:1078px;
+	z-index: 3;
+}
+#sewer3
+{
+	position: absolute;
+	top:318px;
+	left:1378px;
+	z-index: 3;
+}
+#sewer4
+{
+	position: absolute;
+	top:382px;
+	left:2478px;
+	z-index: 3;
+}
+#sewer5
+{
+	position: absolute;
+	top:349px;
+	left:2878px;
+	z-index: 3;
+}
+#sewer6
+{
+	position: absolute;
+	top:318px;
+	left:3278px;
+	z-index: 3;
+}
+#sewer7
+{
+	position: absolute;
+	top:285px;
+	left:4078px;
+	z-index: 3;
+}
+
+#monster1
+{
+	position: absolute;
+	top:414px;
+	left:850px;
+	z-index: 3;
+}
+#monster2
+{
+	position: absolute;
+	top:399px;
+	left:1150px;
+	z-index: 3;
+}
+#mario
+{
+	position: absolute;
+	top: 413px;
+	left:550px;
+	z-index: 3;
+}

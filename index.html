@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="keywords" content="超级玛丽" />
+	<meta name="author" content="Wen Qingfu">
+	<title>超级玛丽</title>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+	
+	<script type="text/javascript">
+	var up=38, left=37 , right=39;                                   //三个按键
+	var walk_right=0, walk_left=0, jump_up=0,jump_left_up=0,jump_right_up=0;   //判断当前马里奥的运动状态
+	var key_left=1, key_right=1, key_up=1, key_left_up=1,key_right_up=1;  //表示对应按键是否允许响应
+	var facing = 1;  // 0 表示马里奥面朝向左， 1表示面朝右
+	const leftEdge=432,rightEdge=670,groundEdge=414;            //左、右、下边缘
+	var v0_x=4, v0_y = 24, t = 0,v_x=0, v_y=0, v_rebound=-10;     //x,y方向的初速度、时间、x,y方向的瞬时速度、被物体反弹后的速度
+	const g = -2;   //游戏中的重力加速度
+	var leftkeydown = 0, rightkeydown=0, upkeydown=0;           //判断对应按键是否按下
+	var falldown = 0;                 							//判断马里奥是否属于下落状态
+	const mario_width = 32, mario_height = 32;                   //马里奥的肩宽和身高
+	const tot_hill = 16, tot_cloud = 12, tot_wall = 7,tot_sewer = 7, tot_monster=2;  //总的山丘数目、云朵数目、墙体数目、管道数目、怪物数目
+	var up_obstacle = false,down_obstacle=false,left_obstacle=false,right_obstacle=false;   //四个方位是否被阻挡
+	var id1,id2,id3,id4,id5,id6,id7,id8,id9;     //setInterval的对应id
+	var monster1_v = 1, monster2_v = 1;   		//怪物的移动速度
+
+
+	var w= 
+	{
+		left:526,
+		right:654,
+		up:330,
+		down:362
+	};
+	var block = new Array();         //block数组存储地图中所有的障碍物
+	block[0] = w;        //wall1                 
+	w = 
+	{
+		left:778,
+		right:844,
+		up:382,
+		down:445
+	}
+	block[1] = w;       //sewer1
+	w = 
+	{
+		left:726,
+		right:854,
+		up:280,
+		down:312
+	}
+	block[2] = w;     //wall2
+	w = 
+	{
+		left:1078,
+		right:1144,
+		up:349,
+		down:445
+	}
+	block[3] = w;        //sewer2
+	w = 
+	{
+		left:1378,
+		right:1443,
+		up:318,
+		down:445
+	}
+	block[4] = w;          //sewer3
+	w = 
+	{
+		left:1220,
+		right:1316,
+		up:250,
+		down:282
+	}
+	block[5] = w;           //wall3
+	w = 
+	{
+		left:1620,
+		right:1748,
+		up:250,
+		down:282
+	}
+	block[6] = w;           //wall4
+	w = 
+	{
+		left:1520,
+		right:1552,
+		up:320,
+		down:352
+	}
+	block[7] = w;           //wall7
+	w = 
+	{
+		left:1920,
+		right:2016,
+		up:350,
+		down:382
+	}
+	block[8] = w;           //wall5
+	w = 
+	{
+		left:2100,
+		right:2292,
+		up:250,
+		down:282
+	}
+	block[9] = w;           //wall6
+	w = 
+	{
+		left:2478,
+		right:2544,
+		up:382,
+		down:445
+	}
+	block[10] = w;           //sewer4
+  	
+  	w = 
+	{
+		left:2878,
+		right:2944,
+		up:349,
+		down:445
+	}
+	block[11] = w;           //sewer5
+  	
+  	w = 
+	{
+		left:3278,
+		right:3343,
+		up:318,
+		down:445
+	}
+	block[12] = w;           //sewer6
+  	
+  	
+
+	/**
+	 * 检测向上过程中是否碰撞
+	 * @param  {int} x 马里奥左上角横坐标
+	 * @param  {int} y 马里奥左上角纵坐标
+	 * @return {int}  若碰撞则为0,否则返回与第几个物体碰撞
+	 */
+	function checkup(x,y)	
+	{
+		for(var i=0;i<block.length;i++)
+		if(block[i].down>y&&block[i].up<y)
+		{
+			if((block[i].left<x+mario_width&&x+mario_width<block[i].right)||
+				(block[i].left<x&&x<block[i].right))
+			{
+				return i+1;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * 检测向下过程中是否碰撞
+	 * @param  {int} x 马里奥左上角横坐标
+	 * @param  {int} y 马里奥左上角纵坐标
+	 * @return {int}  若碰撞则为0,否则返回与第几个物体碰撞
+	 */
+	function checkdown(x,y)	
+	{
+		for(var i=0;i<block.length;i++)
+		if(block[i].down>y+mario_height&&block[i].up<y+mario_height)
+		{
+			if((block[i].left<x+mario_width&&x+mario_width<block[i].right)||
+				(block[i].left<x&&x<block[i].right))
+			{
+				return i+1;
+			}
+		}
+		return 0;
+	}
+
+
+	/**
+	 * 检测向左过程中是否碰撞
+	 * @param  {int} x 马里奥左上角横坐标
+	 * @param  {int} y 马里奥左上角纵坐标
+	 * @return {bool}  true表示没有碰撞,false表示碰撞 
+	 */
+	function checkleft(x,y)
+	{
+		for(var i=0;i<block.length;i++)
+		if(block[i].right>x&&block[i].left<x)
+		{
+			if((block[i].up<y+mario_height&&y+mario_height<block[i].down)||
+				(block[i].up<y&&y<block[i].down))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * 检测向右过程中是否碰撞
+	 * @param  {int} x 马里奥左上角横坐标
+	 * @param  {int} y 马里奥左上角纵坐标
+	 * @return {bool}  true表示没有碰撞,false表示碰撞 
+	 */
+	function checkright(x,y)
+	{
+		for(var i=0;i<block.length;i++)
+		if(block[i].left<x&&block[i].right>x)
+		{
+			if((block[i].up<y+mario_height&&y+mario_height<block[i].down)||
+				(block[i].up<y&&y<block[i].down))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+
+	/**
+	 * 控制马里奥从墙块或者管道上下落的过程
+	 */
+	function dropdown()
+	{
+		v_y = g*t;
+		var k = checkdown(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+		if(k!=0)
+		{
+			$('#mario').css({"top":block[k-1].up-mario_height+'px'});
+			if(facing)
+			{
+				$('#mario')[0].setAttribute('src',"images/marior1.gif");
+			}
+			else
+			{
+				$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+			}
+			falldown = 0;
+			walk_left = 0;
+			walk_right = 0;
+			t = 0;
+			clearInterval(id6);
+		}
+		else if(parseInt($('#mario').css("top"))-v_y<=groundEdge)
+		{
+			$('#mario').css({"top":parseInt($('#mario').css("top"))-v_y+'px'});
+		}
+		else
+		{
+			$('#mario').css({"top":groundEdge+'px'});
+			if(facing)
+			{
+				$('#mario')[0].setAttribute('src',"images/marior1.gif");
+			}
+			else
+			{
+				$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+			}
+			falldown = 0;
+			walk_left = 0;
+			walk_right = 0;
+			t = 0;
+			clearInterval(id6);
+		}
+		t++;
+	}
+
+	/**
+	 * 控制马里奥向上跳
+	 */
+	function jump()
+	{
+		if(!up_obstacle) v_y = v0_y + g*t;
+		if(jump_up)
+		{
+			var k = checkdown(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+			if(k!=0)
+			{
+				$('#mario').css({"top":block[k-1].up-mario_height+'px'});
+				if(facing)
+				{
+					$('#mario')[0].setAttribute('src',"images/marior1.gif");
+				}
+				else
+				{
+					$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+				}
+				jump_up = 0;
+				key_right_up = 1;
+ 				key_left_up = 1;
+ 				v0_y = 24;
+				clearInterval(id1);
+			}
+			else if(parseInt($('#mario').css("top"))-v_y<=groundEdge)
+			{
+				var kk = checkup(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+				if(kk==0)
+				{
+					$('#mario').css({"top":parseInt($('#mario').css("top"))-v_y+'px'});
+				}
+				else 
+				{
+					$('#mario').css({"top":block[kk-1].down+'px'});
+					v_y = v_rebound;
+					up_obstacle = true;
+				}
+
+			}
+			else
+			{
+				$('#mario').css({"top":groundEdge+'px'});
+				if(facing)
+				{
+					$('#mario')[0].setAttribute('src',"images/marior1.gif");
+				}
+				else
+				{
+					$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+				}
+				jump_up = 0;
+				key_right_up = 1;
+ 				key_left_up = 1;
+ 				v0_y = 24;
+				clearInterval(id1);
+			}
+		}
+		t++;
+	}
+
+
+	/**
+	 * 控制马里奥向左上跳
+	 */
+	function jump_leftup()
+	{
+		if(!up_obstacle)v_y = v0_y + g*t;
+		v_x = v0_x;
+		if(jump_left_up)
+		{
+			var k = checkdown(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+			if(k!=0)
+			{
+				$('#mario').css({"top":block[k-1].up-mario_height+'px'});
+				if(facing)
+				{
+					$('#mario')[0].setAttribute('src',"images/marior1.gif");
+				}
+				else
+				{
+					$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+				}
+				jump_left_up = 0;
+				v0_y = 24;
+				clearInterval(id2);
+			}
+			else if(parseInt($('#mario').css("top"))-v_y<=groundEdge)
+			{
+				var kk = checkup(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+				if(kk==0)
+				{
+					$('#mario').css({"top":parseInt($('#mario').css("top"))-v_y+'px'});
+				}
+				else 
+				{
+					$('#mario').css({"top":block[kk-1].down+'px'});
+					v_y = v_rebound;
+					up_obstacle = true;
+				}
+				var horizontal=parseInt($('#mario').css("left"));
+ 				if(horizontal>leftEdge&&checkleft(horizontal-v_x,parseInt($('#mario').css("top"))))
+ 				{
+ 					$('#mario').css({"left":horizontal-v_x+'px'});
+ 				}
+			}
+			else
+			{
+				$('#mario').css({"top":groundEdge+'px'});
+				if(facing)
+				{
+					$('#mario')[0].setAttribute('src',"images/marior1.gif");
+				}
+				else
+				{
+					$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+				}
+				jump_left_up = 0;
+				v0_y = 24;
+				clearInterval(id2);
+			}
+		}
+		t++;
+	}
+
+
+	/**
+	 * 控制马里奥向右上跳
+	 */
+	function jump_rightup()
+	{
+		if(!up_obstacle) v_y = v0_y + g*t;
+		v_x = v0_x;
+		if(jump_right_up)
+		{	
+			var k = checkdown(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+			if(k!=0)
+			{
+				$('#mario').css({"top":block[k-1].up-mario_height+'px'});
+				if(facing)
+				{
+					$('#mario')[0].setAttribute('src',"images/marior1.gif");
+				}
+				else
+				{
+					$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+				}
+				jump_right_up = 0;
+				v0_y = 24;
+				clearInterval(id3);
+			}
+			else if(parseInt($('#mario').css("top"))-v_y<=groundEdge)
+			{
+				var kk = checkup(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))-v_y);
+				if(kk==0)
+				{
+					$('#mario').css({"top":parseInt($('#mario').css("top"))-v_y+'px'});
+				}
+				else 
+				{
+					$('#mario').css({"top":block[kk-1].down+'px'});
+					v_y = v_rebound;
+					up_obstacle = true;
+				}
+ 				var horizontal=parseInt($('#mario').css("left"));
+ 				if(checkright(horizontal+mario_width+v_x,parseInt($('#mario').css("top"))))
+ 				{
+ 					if(horizontal+v_x<rightEdge)
+ 					{
+ 						$('#mario').css({"left":horizontal+v_x+'px'});
+ 					}
+ 					else
+ 					{
+ 						$('#ground').css({'left':parseInt($('#ground').css('left'))-v0_x+'px'});
+ 						for(var i=1;i<=tot_wall;i++)
+ 						{
+ 							$('#wall'+i).css({"left":parseInt($('#wall'+i).css("left"))-v0_x+'px'});
+ 						}
+ 						for(var i=1;i<=tot_cloud;i++)
+ 						{
+ 							$('#cloud'+i).css({"left":parseInt($('#cloud'+i).css("left"))-v0_x+'px'});
+ 						}
+ 						for(var i=1;i<=tot_hill;i++)
+ 						{
+ 							$('#hill'+i).css({"left":parseInt($('#hill'+i).css("left"))-v0_x+'px'});
+ 						}
+ 						for(var i=1;i<=tot_sewer;i++)
+ 						{
+ 							$('#sewer'+i).css({"left":parseInt($('#sewer'+i).css("left"))-v0_x+'px'});
+ 						}	
+ 						for(var i=1;i<=tot_monster;i++)
+ 						{
+ 							$('#monster'+i).css({"left":parseInt($('#monster'+i).css("left"))-v0_x+'px'});
+ 						}
+
+ 						for(var i=0;i<block.length;i++)
+ 						{
+ 							block[i].left = block[i].left-v0_x;
+ 							block[i].right = block[i].right-v0_x;
+ 						}
+ 					}
+				}
+			}
+			else
+			{
+				$('#mario').css({"top":groundEdge+'px'});
+				if(facing)
+				{
+					$('#mario')[0].setAttribute('src',"images/marior1.gif");
+				}
+				else
+				{
+					$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+				}
+				jump_right_up = 0;
+				v0_y = 24;
+				clearInterval(id3);
+			}
+		}
+		t++;
+	}
+
+
+	/**
+	 * 开始左上跳前的预处理过程
+	 */
+	function jumpLeftUp()
+	{
+		walk_left = 0;
+		walk_right = 0;
+		up_obstacle = false;
+		if(key_left_up&&!jump_right_up&&!jump_left_up)
+		{
+			t = 1;
+			id2 = setInterval("jump_leftup()",30);
+ 			if(facing)
+			{
+				$('#mario')[0].setAttribute('src',"images/mariojump1.gif");
+			}
+			else
+			{
+				$('#mario')[0].setAttribute('src',"images/mariojump4.gif");
+			}
+ 			jump_left_up = 1;
+ 			
+ 		}
+	}
+
+	/**
+	 * 开始右上跳前的预处理过程
+	 */
+	function jumpRightUp()
+	{
+		walk_left = 0;
+		walk_right = 0;
+		up_obstacle = false;
+		if(key_right_up&&!jump_right_up&&!jump_left_up)
+		{
+			key_left = 0;
+			key_right = 0;
+			t = 1;
+			id3 = setInterval("jump_rightup()",30);
+ 			if(facing)
+			{
+				$('#mario')[0].setAttribute('src',"images/mariojump1.gif");
+			}
+			else
+			{
+				$('#mario')[0].setAttribute('src',"images/mariojump4.gif");
+			}
+ 			jump_right_up = 1;
+ 		}
+	}
+
+
+	/**
+	 * 开始上跳前的预处理过程
+	 */
+	function jumpUp() 
+	{
+		upkeydown = 1;
+		up_obstacle = false;
+  		if(key_up&&!jump_up&&!jump_right_up&&!jump_left_up)
+ 				{
+ 					t = 1;
+ 					id1 = setInterval("jump()",30);
+ 					key_left = 0;
+ 					key_right = 0;
+ 					key_right_up = 0;
+ 					key_left_up = 0;
+ 					if(facing)
+					{
+						$('#mario')[0].setAttribute('src',"images/mariojump1.gif");
+					}
+					else
+					{
+						$('#mario')[0].setAttribute('src',"images/mariojump4.gif");
+					}
+ 					jump_up = 1;
+ 				}
+	}
+
+
+	/**
+	 * 控制马里奥向左走
+	 */
+	function walkLeft()
+	{
+		leftkeydown = 1;
+		if(key_left&&!jump_left_up&&!jump_right_up)
+ 				{
+ 					key_up = 0;
+ 					key_right= 0;
+ 					facing = 0;
+ 					if(walk_left==0&&!jump_up) 
+ 					{
+ 						$('#mario')[0].setAttribute('src',"images/walking3.gif");
+ 						walk_left = 1;
+ 					}
+ 					var horizontal=parseInt($('#mario').css("left"));
+ 					if(horizontal>leftEdge&&checkleft(horizontal-v0_x,parseInt($('#mario').css("top"))))
+ 					{
+ 						$('#mario').css({"left":horizontal-v0_x+'px'});
+ 					}
+ 				}
+ 		if(!falldown&&!jump_up&&!jump_left_up&&!jump_right_up&&parseInt($('#mario').css("top"))<groundEdge)
+ 		{
+
+ 			var k = checkdown(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))+2);
+			if(k==0)
+			{
+				falldown = 1;
+				t = 1;
+				id6 = setInterval('dropdown()',30);
+			}
+		}	
+	}
+
+
+	/**
+	 * 控制马里奥向右走
+	 */
+	function walkRight()
+	{
+		rightkeydown = 1;
+		if(key_right&&!jump_left_up&&!jump_right_up)
+ 				{
+ 					key_up = 0;
+ 					key_left = 0;
+ 					facing = 1;
+ 					if(walk_right==0&&!jump_up) 
+ 					{
+ 						$('#mario')[0].setAttribute('src',"images/walking1.gif");
+ 						walk_right = 1;
+ 					}
+ 					var horizontal=parseInt($('#mario').css("left"));
+ 					if(checkright(horizontal+mario_width+v0_x,parseInt($('#mario').css("top"))))
+ 					{
+ 						if(horizontal+v_x<rightEdge)
+ 						{
+ 							$('#mario').css({"left":horizontal+v0_x+'px'});
+ 						}
+ 						else
+ 						{
+ 							$('#ground').css({'left':parseInt($('#ground').css('left'))-v0_x+'px'});
+ 							for(var i=1;i<=tot_wall;i++)
+ 							{
+ 								$('#wall'+i).css({"left":parseInt($('#wall'+i).css("left"))-v0_x+'px'});
+ 							}
+ 							for(var i=1;i<=tot_cloud;i++)
+ 							{
+ 								$('#cloud'+i).css({"left":parseInt($('#cloud'+i).css("left"))-v0_x+'px'});
+ 							}
+ 							for(var i=1;i<=tot_hill;i++)
+ 							{
+ 								$('#hill'+i).css({"left":parseInt($('#hill'+i).css("left"))-v0_x+'px'});
+ 							}
+ 							for(var i=1;i<=tot_sewer;i++)
+ 							{
+ 								$('#sewer'+i).css({"left":parseInt($('#sewer'+i).css("left"))-v0_x+'px'});
+ 							}	
+ 							for(var i=1;i<=tot_monster;i++)
+ 							{
+ 								$('#monster'+i).css({"left":parseInt($('#monster'+i).css("left"))-v0_x+'px'});
+ 							}	
+ 							for(var i=0;i<block.length;i++)
+ 							{
+ 								block[i].left = block[i].left-v0_x;
+ 								block[i].right = block[i].right-v0_x;
+ 							}
+ 						}
+ 					}
+ 				}
+ 		if(!falldown&&!jump_up&&!jump_left_up&&!jump_right_up&&parseInt($('#mario').css("top"))<groundEdge)
+ 		{
+ 			var k = checkdown(parseInt($('#mario').css("left")),parseInt($('#mario').css("top"))+2);
+			if(k==0)
+			{
+				falldown = 1;
+				t = 1;
+				id6 = setInterval('dropdown()',30);
+			}
+		}
+	}
+
+
+	/**
+	 * 向上键被按下时执行
+	 */
+    function keyUp()
+    {
+    	if(falldown==0)
+    	{
+    		if(leftkeydown) jumpLeftUp(); 
+    		else if(rightkeydown) jumpRightUp();
+    		else  jumpUp();
+    	}
+    }
+
+    /**
+	 * 向左键被按下时执行
+	 */
+    function keyLeft()
+    {
+    	if(falldown==0&&leftkeydown==0)
+ 		{
+ 			id4 = setInterval('walkLeft()',30);
+ 		}
+    }
+
+    /**
+	 * 向右键被按下时执行
+	 */
+    function keyRight()
+    {  
+    	if(falldown==0&&rightkeydown==0)
+ 		{
+
+ 			id5 = setInterval('walkRight()',30);
+ 		}
+    }
+    
+    /**
+     *控制一号怪物移动
+     */
+    function monster1_move()             
+    {
+    	var left = parseInt($('#monster1').css('left'))+monster1_v;
+    	var right = left+32;
+    	var top = parseInt($('#monster1').css('top'));
+    	if(right>parseInt($('#sewer2').css('left'))||left<parseInt($('#sewer1').css('left'))+66)
+    		monster1_v = -monster1_v;
+    	$('#monster1').css('left',left+monster1_v);
+    	var mario_left = parseInt($('#mario').css('left'));
+    	var mario_top = parseInt($('#mario').css('top'));
+    	if((mario_left<left+31&&mario_left>left+1)||(mario_left+mario_width<left+31&&mario_left+mario_width>left+1)||(left==mario_left))
+    	{
+    		if(Math.abs(mario_top+mario_height-top)<25)
+    		{
+    			$('#monster1').children('img')[0].setAttribute('src',"images/bichoAplastado.gif");
+    			clearInterval(id7);
+    			setTimeout("$('#monster1').hide();",500);
+    		}
+    	}
+    	else if((mario_left<left+32&&mario_left>left)||(mario_left+mario_width<left+32&&mario_left+mario_width>left)||(left==mario_left))
+    	{
+    		if((mario_top<top+32&&mario_top>top)||(mario_top+mario_height<top+32&&mario_top+mario_height>top)||(top==mario_top))
+    		{
+    			clearInterval(id7);
+    			if(confirm("您失败了，是否重新游戏?取消则关闭当前页面。"))
+    			{
+    				document.location.reload();
+    			}
+    			else
+    			{	
+    				window.opener=null;
+					window.open('','_self');
+					window.close();
+    			}
+    		}
+    	}
+    }
+   id7 = setInterval('monster1_move()',30);
+	
+
+	/**
+     *控制二号怪物移动
+     */
+    function monster2_move()             
+    {
+    	var left = parseInt($('#monster2').css('left'))+monster2_v;
+    	var right = left+32;
+    	var top = parseInt($('#monster2').css('top'));
+    	if(right>parseInt($('#sewer3').css('left'))||left<parseInt($('#sewer2').css('left'))+66)
+    	{
+    		monster2_v = -monster2_v;
+    		if(monster2_v>0)
+    		{
+    			$('#monster2').children('img')[0].setAttribute('src',"images/tortuga1.gif")
+    		}
+    		else
+    		{
+    			$('#monster2').children('img')[0].setAttribute('src',"images/tortuga2.gif")
+    		}
+    	}
+    	$('#monster2').css('left',left+monster2_v);
+    	var mario_left = parseInt($('#mario').css('left'));
+    	var mario_top = parseInt($('#mario').css('top'));
+    	if((mario_left<left+31&&mario_left>left+1)||(mario_left+mario_width<left+31&&mario_left+mario_width>left+1)||(left==mario_left))
+    	{
+    		if(Math.abs(mario_top+mario_height-top)<25)
+    		{
+    			$('#monster2').children('img')[0].setAttribute('src',"images/tortuga3.gif");
+    			clearInterval(id8);
+    			setTimeout("$('#monster2').hide();",500);
+    		}
+    	}
+    	else if((mario_left<left+32&&mario_left>left)||(mario_left+mario_width<left+32&&mario_left+mario_width>left)||(left==mario_left))
+    	{
+    		if((mario_top<top+47&&mario_top>top)||(mario_top+mario_height<top+47&&mario_top+mario_height>top)||(top==mario_top))
+    		{
+    			clearInterval(id8);
+    			if(confirm("很遗憾您失败了，是否重新游戏?取消则关闭当前页面。"))
+    			{
+    				document.location.reload();
+    			}
+    			else
+    			{	
+    				window.opener=null;
+					window.open('','_self');
+					window.close();
+    			}
+    		}
+    	}
+    }
+    id8 = setInterval('monster2_move()',30);
+
+
+    id9 = setInterval('win()',30);
+    /**
+     * 判断游戏是否顺利结束
+     */
+    function win()
+    {
+    	if(parseInt($('#sewer7').css('left'))<=608)
+    	{
+    		clearInterval(id9);
+    		if(confirm('恭喜您胜利了，是否重新游戏?取消则关闭当前页面。'))
+    		{
+    			document.location.reload();
+    		}
+    		else
+    		{	
+    			window.opener=null;
+				window.open('','_self');
+				window.close();
+    		}
+    	}
+    }
+
+
+    /**
+     * 分别监听键盘down和up的事件
+     */
+	$(window).keydown(function(event){
+ 		switch(event.keyCode) {
+ 			case up:
+ 					keyUp();
+ 					break;
+ 			case left:
+ 				keyLeft();
+ 				break;
+ 			case right:
+ 				keyRight();
+ 				break;
+ 			default:
+ 				break;
+  		}
+	});
+
+	$(window).keyup(function(event){
+ 		switch(event.keyCode) {
+ 			case up:
+ 					upkeydown = 0;
+ 					key_right = 1;
+ 					key_left = 1;
+ 					break;
+ 			case left:
+ 				clearInterval(id4);
+ 				leftkeydown = 0;
+ 				if(key_left)
+ 				{
+ 					if(!jump_up&&!jump_left_up&&!jump_right_up)
+ 					{
+ 						walk_left = 0;
+ 						$('#mario')[0].setAttribute('src',"images/mariol1.gif");
+ 					}
+ 					key_up = 1;
+ 					key_right = 1;
+ 				}
+ 				break;
+ 			case right:
+ 				clearInterval(id5);
+ 				rightkeydown = 0;
+ 				if(key_right)
+ 				{
+ 					if(!jump_up&&!jump_left_up&&!jump_right_up)
+ 					{
+ 						walk_right = 0;
+ 						$('#mario')[0].setAttribute('src',"images/marior1.gif");
+ 					}		
+ 					key_up = 1;
+ 					key_left = 1;
+ 				}
+ 				break;
+ 			default:
+ 				break;
+  		}
+	});
+
+	</script>
+</head>
+<body>
+<div id="left-curtain"></div>      <!--左边的幕布-->
+<div id="main">
+	<div id="backcolor"></div>
+</div>
+<div id="right-curtain"></div>     <!--右边的幕布-->
+<div id="ground"></div>			   <!--地面-->
+
+
+<!--山丘-->
+<div id="hill1">
+	<img src="images/hill1.gif"/>
+</div>
+<div id="hill2">
+	<img src="images/tussock1.gif">
+</div>
+<div id="hill3">
+	<img src="images/tussock2.gif">
+</div>
+<div id="hill4">
+	<img src="images/hill2.gif">
+</div>
+<div id="hill5">
+	<img src="images/hill1.gif">
+</div>
+<div id="hill6">
+	<img src="images/tussock2.gif">
+</div>
+<div id="hill7">
+	<img src="images/hill2.gif">
+</div>
+<div id="hill8">
+	<img src="images/tussock1.gif">
+</div>
+<div id="hill9">
+	<img src="images/tussock2.gif">
+</div>
+<div id="hill10">
+	<img src="images/tussock1.gif">
+</div>
+<div id="hill11">
+	<img src="images/hill1.gif"/>
+</div>
+<div id="hill12">
+	<img src="images/tussock3.gif">
+</div>
+<div id="hill13">
+	<img src="images/hill2.gif">
+</div>
+<div id="hill14">
+	<img src="images/tussock2.gif">
+</div>
+<div id="hill15">
+	<img src="images/hill1.gif">
+</div>
+<div id="hill16">
+	<img src="images/tussock2.gif">
+</div>
+
+
+<!--墙体-->
+<div id="wall1">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+</div>
+<div id="wall2">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+</div>
+<div id="wall3">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+</div>
+<div id="wall4">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+</div>
+<div id="wall5">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+</div>
+<div id="wall6">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+	<img style="float:left;" src="images/cubo.gif">
+</div>
+<div id="wall7">
+	<img src="images/signo.gif">
+</div>
+
+
+<!--云朵-->
+<div id="cloud1">
+	<img src="images/cloud1.gif"/>
+</div>
+<div id="cloud2">
+	<img src="images/cloud2.gif"/>
+</div>
+<div id="cloud3">
+	<img src="images/cloud3.gif"/>
+</div>
+<div id="cloud4">
+	<img src="images/cloud1.gif"/>
+</div>
+<div id="cloud5">
+	<img src="images/cloud2.gif"/>
+</div>
+<div id="cloud6">
+	<img src="images/cloud3.gif"/>
+</div>
+<div id="cloud7">
+	<img src="images/cloud1.gif"/>
+</div>
+<div id="cloud8">
+	<img src="images/cloud2.gif"/>
+</div>
+<div id="cloud9">
+	<img src="images/cloud3.gif"/>
+</div>
+<div id="cloud10">
+	<img src="images/cloud1.gif"/>
+</div>
+<div id="cloud11">
+	<img src="images/cloud2.gif"/>
+</div>
+<div id="cloud12">
+	<img src="images/cloud3.gif"/>
+</div>
+
+<!--管道-->
+<div id="sewer1">
+	<img src="images/sewer.gif"/>
+</div>
+<div id="sewer2">
+	<img src="images/sewer2.gif"/>
+</div>
+<div id="sewer3">
+	<img src="images/sewer3.gif"/>
+</div>
+<div id="sewer4">
+	<img src="images/sewer.gif"/>
+</div>
+<div id="sewer5">
+	<img src="images/sewer2.gif"/>
+</div>
+<div id="sewer6">
+	<img src="images/sewer3.gif"/>
+</div>
+<div id="sewer7">
+	<img src="images/figura9.gif">
+</div>
+
+<!--怪物-->
+<div id="monster1">
+	<img src="images/bicho.gif"/>
+</div>
+<div id="monster2">
+	<img src="images/tortuga1.gif"/>
+</div>
+
+<!--马里奥-->
+<div id="marios">
+	<img id="mario"src='images/marior1.gif'>
+</div>
+</body>
+</html>
